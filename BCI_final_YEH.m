@@ -63,11 +63,17 @@ answer = [ ...
 %--- 5. 棋盤與 SSVEP 刺激區域初始化 (正圓環狀排列) ---
 
 % =========================================================================
-% 【形狀控制參數】：切換刺激目標之幾何外觀
-% stimShape = 0 : 使用「圓形」顯示 (Circle / Oval)
-% stimShape = 1 : 使用「方形」顯示 (Square / Rect)
+% 【實驗控制參數】：根據受試者需求自由配置幾何外觀與閃爍波形
+% 1. 形狀控制 (stimShape):
+%    stimShape = 0 : 使用「圓形」顯示 (Circle / Oval)
+%    stimShape = 1 : 使用「方形」顯示 (Square / Rect)
+%
+% 2. 波形控制 (stimWave):
+%    stimWave  = 0 : 使用「正弦波」調變 (Sinusoidal Wave, 平滑灰階亮度漸變)
+%    stimWave  = 1 : 使用「方波」調變 (Square Wave, 明暗二值突變切換)
 % =========================================================================
 stimShape = 0; 
+stimWave  = 1; 
 
 screenHeight = rect(4);
 screenWidth = rect(3);
@@ -284,15 +290,28 @@ while running
             Screen('DrawLine', window, white, lineX, startY, lineX, startY + boardHeight, 3);
         end
         
-        % 2-2. 繪製四周 9 個 SSVEP 正弦波閃爍目標 (根據 stimShape 選擇圓形或方形)
+        % 2-2. 繪製四周 9 個 SSVEP 閃爍目標 (波形: 正弦波 / 方波; 形狀: 圓形 / 方形)
         Screen('TextSize', window, round(boxH * 0.45));
         for k = 1:9
-            if sin(2*pi*freq(k)*t) > 0
-                color = white;
-                textColor = black;
+            if stimWave == 0
+                % --- 正弦波模式 (Sinusoidal Wave)：灰階亮度平滑漸變 ---
+                sinVal = sin(2 * pi * freq(k) * t);
+                intensity = round(50 + (255 - 50) * (1 + sinVal) / 2);
+                color = [intensity, intensity, intensity];
+                if intensity > 152
+                    textColor = black;
+                else
+                    textColor = white;
+                end
             else
-                color = [50 50 50];
-                textColor = white;
+                % --- 方波模式 (Square Wave)：高對比明暗二值突變切換 ---
+                if sin(2 * pi * freq(k) * t) >= 0
+                    color = white;
+                    textColor = black;
+                else
+                    color = [50 50 50];
+                    textColor = white;
+                end
             end
             
             if stimShape == 0
